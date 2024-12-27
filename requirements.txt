@@ -15,3 +15,6 @@ dbt-bigquery>=1.5.0
 # Visualization
 streamlit>=1.24.0
 plotly>=5.15.0 
+
+# Editable installation for Streamlit Community Cloud
+-e .
