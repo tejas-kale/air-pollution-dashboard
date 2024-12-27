@@ -1,0 +1,15 @@
+# List of cities for air pollution data collection and visualization
+# Cities are listed in the order they should appear in visualizations
+cities:
+  - name: "London"
+    country: "United Kingdom"
+  - name: "Berlin"
+    country: "Germany"
+  - name: "Thane"
+    country: "India"
+  - name: "Pune"
+    country: "India"
+  - name: "Kolhapur"
+    country: "India"
+  - name: "Bangalore"
+    country: "India" 

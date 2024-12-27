@@ -6,7 +6,6 @@ ENV/
 *.pyc
 __pycache__/
 august-cirrus-*.json
-**/cities.yml
 
 # Project-specific files
 last_update.json
