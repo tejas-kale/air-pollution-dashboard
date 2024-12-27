@@ -12,6 +12,11 @@ on:
       - 'air_pollution_analytics/**'
       - '.github/workflows/dbt-test.yml'
 
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: true
+
 jobs:
   dbt-test:
     runs-on: ubuntu-latest
