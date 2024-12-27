@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'air_pollution_analytics/**'
+      - '.github/workflows/dbt-test.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'air_pollution_analytics/**'
+      - '.github/workflows/dbt-test.yml'
 
 jobs:
   dbt-test:
@@ -36,6 +38,10 @@ jobs:
 
     - name: Set up GCP credentials
       run: |
+        if [ -z "${{ secrets.GOOGLE_CREDENTIALS }}" ]; then
+          echo "Error: GOOGLE_CREDENTIALS secret is not set"
+          exit 1
+        fi
         echo '${{ secrets.GOOGLE_CREDENTIALS }}' > gcp-credentials.json
 
     - name: Create profiles.yml
@@ -57,13 +63,23 @@ jobs:
               keyfile: ${{ github.workspace }}/gcp-credentials.json
         EOF
 
+    - name: Verify dbt connection
+      run: |
+        dbt debug --project-dir $DBT_PROJECT_DIR
+        if [ $? -ne 0 ]; then
+          echo "Failed to connect to BigQuery"
+          exit 1
+        fi
+
     - name: Run dbt tests
       run: |
-        dbt test --project-dir $DBT_PROJECT_DIR
+        dbt test --project-dir $DBT_PROJECT_DIR --fail-fast
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: dbt-test-results
-        path: ${{ github.workspace }}/air_pollution_analytics/target/ 
+        path: |
+          ${{ github.workspace }}/air_pollution_analytics/target/
+          ${{ github.workspace }}/air_pollution_analytics/logs/ 
