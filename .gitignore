@@ -27,3 +27,6 @@ Thumbs.db
 
 # Streamlit
 **/*.egg-info
+
+# Streamlit secrets
+.streamlit/
