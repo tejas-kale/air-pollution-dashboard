@@ -1,0 +1,69 @@
+name: dbt Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'air_pollution_analytics/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'air_pollution_analytics/**'
+
+jobs:
+  dbt-test:
+    runs-on: ubuntu-latest
+    
+    env:
+      DBT_PROFILES_DIR: ./air_pollution_analytics
+      DBT_PROJECT_DIR: ./air_pollution_analytics
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-credentials.json
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install dbt-bigquery
+        dbt deps --project-dir $DBT_PROJECT_DIR
+
+    - name: Set up GCP credentials
+      run: |
+        echo '${{ secrets.GOOGLE_CREDENTIALS }}' > gcp-credentials.json
+
+    - name: Create profiles.yml
+      run: |
+        mkdir -p $DBT_PROFILES_DIR
+        cat << EOF > $DBT_PROFILES_DIR/profiles.yml
+        air_pollution_analytics:
+          target: ci
+          outputs:
+            ci:
+              type: bigquery
+              method: service-account
+              project: ${{ secrets.GCP_PROJECT_ID }}
+              dataset: air_pollution
+              threads: 4
+              timeout_seconds: 300
+              location: US
+              priority: interactive
+              keyfile: ${{ github.workspace }}/gcp-credentials.json
+        EOF
+
+    - name: Run dbt tests
+      run: |
+        dbt test --project-dir $DBT_PROJECT_DIR
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: dbt-test-results
+        path: ${{ github.workspace }}/air_pollution_analytics/target/ 

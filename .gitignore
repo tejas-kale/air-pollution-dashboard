@@ -1,0 +1,28 @@
+# Environment and credentials
+.env
+.venv/
+venv/
+ENV/
+*.pyc
+__pycache__/
+august-cirrus-*.json
+**/bq.yml
+**/cities.yml
+
+# Project-specific files
+last_update.json
+
+# DBT
+target/
+dbt_packages/
+logs/
+**/profiles.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db 
