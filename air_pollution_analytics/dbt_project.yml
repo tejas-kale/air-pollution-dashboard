@@ -1,0 +1,32 @@
+name: 'air_pollution_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'air_pollution_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  air_pollution_analytics:
+    staging:
+      +materialized: view
+      +schema: staging    # Creates views in a staging schema 
+
+seeds:
+  air_pollution_analytics:
+    cities:
+      +column_types:
+        city_name: string
+        country: string
+        latitude: float64
+        longitude: float64
+      +quote_columns: false 

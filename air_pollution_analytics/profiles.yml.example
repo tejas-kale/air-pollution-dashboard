@@ -1,0 +1,13 @@
+air_pollution_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: <your-gcp-project-id>  # Replace with your GCP project ID
+      dataset: air_pollution    # This will be your default dataset
+      threads: 4
+      timeout_seconds: 300
+      location: US
+      priority: interactive
+      

@@ -1,0 +1,113 @@
+pollutants:
+  PM2.5:
+    annual_col: pm2_5_annual_mean
+    rolling_col: pm2_5_24h_mean
+    unit: μg/m³
+    annual_ref: 5
+    daily_ref: 15
+    description: |
+      PM2.5 (Fine Particulate Matter) refers to particulate matter with a 
+      diameter of 2.5 micrometers or smaller. These particles originate from 
+      sources such as vehicle exhaust, power plants, and other combustion 
+      processes and are measured in µg/m³ using gravimetric or optical techniques. 
+      In the short term, PM2.5 irritates the respiratory system, exacerbates 
+      asthma, and worsens cardiovascular conditions. Its small size allows it 
+      to penetrate deep into the lungs, causing long-term health risks such as 
+      lung cancer, stroke, and heart attacks.
+
+      Reference values:
+      - Annual mean: 5 μg/m³ (WHO Air Quality Guidelines)
+      - 24-hour mean: 15 μg/m³ (WHO Air Quality Guidelines)
+
+
+  PM10:
+    annual_col: pm10_annual_mean
+    rolling_col: pm10_24h_mean
+    unit: μg/m³
+    annual_ref: 15
+    daily_ref: 45
+    description: |
+      PM10 (Coarse Particulate Matter) encompasses particles up to 10 micrometers 
+      in diameter, which include dust, pollen, and emissions from construction and 
+      industrial activities. Like PM2.5, it is measured in µg/m³ using size-selective 
+      filters or sensors. While PM10 cannot penetrate as deeply into the lungs 
+      as PM2.5, it still causes significant health risks, such as respiratory 
+      irritation and the exacerbation of asthma. Chronic exposure can lead to 
+      reduced lung function and increased mortality risk, making it an important 
+      pollutant to control.
+      
+      Reference values:
+      - Annual mean: 15 μg/m³ (WHO Air Quality Guidelines)
+      - 24-hour mean: 45 μg/m³ (WHO Air Quality Guidelines)
+
+  NO2:
+    annual_col: no2_annual_mean
+    rolling_col: no2_24h_mean
+    unit: μg/m³
+    annual_ref: 10
+    daily_ref: 25
+    description: |
+      Nitrogen Dioxide (NO₂) is a reddish-brown gas formed from the oxidation of 
+      nitrogen monoxide (NO). It is released by vehicle exhaust, industrial 
+      emissions, and power plants, and is typically measured in micrograms per 
+      cubic meter (µg/m³) or ppb using chemiluminescence. Acute exposure can 
+      cause throat irritation, coughing, and exacerbate asthma attacks, while 
+      long-term exposure is linked to chronic bronchitis and reduced lung capacity. 
+      NO₂ also contributes to the formation of smog and acid rain, posing additional 
+      environmental and health challenges.      
+
+      Reference values:
+      - Annual mean: 10 μg/m³ (WHO Air Quality Guidelines)
+      - 24-hour mean: 25 μg/m³ (WHO Air Quality Guidelines)
+
+  SO2:
+    rolling_col: so2_24h_mean
+    unit: μg/m³
+    daily_ref: 40
+    description: |
+      Sulphur Dioxide (SO₂) is a colorless gas with a pungent odor that originates 
+      from burning sulfur-containing fuels, such as coal and oil, and from volcanic 
+      activity. It is measured in µg/m³ using UV fluorescence analyzers. Short-term 
+      exposure inflames the airways, causing coughing, wheezing, and exacerbating 
+      asthma. Long-term exposure can contribute to the development of chronic 
+      respiratory diseases and environmental issues such as acid rain. SO₂ is a 
+      major target for air quality regulations to mitigate its harmful effects.
+      
+      Reference value:
+      - 24-hour mean: 40 μg/m³ (WHO Air Quality Guidelines)
+
+  CO:
+    rolling_col: co_24h_mean
+    unit: mg/m³
+    daily_ref: 4
+    description: |
+      Carbon Monoxide (CO) is a colorless, odorless gas produced by the incomplete 
+      combustion of carbon-based fuels. Common sources include car exhaust, wood 
+      stoves, and poorly ventilated heaters. It is typically measured in parts per 
+      million (ppm) using electrochemical or infrared sensors. Acute exposure can 
+      cause symptoms such as headaches, dizziness, and nausea, and can be fatal 
+      in high concentrations. Long-term exposure exacerbates heart disease and 
+      can lead to neurological problems.      
+
+      Reference value:
+      - 24-hour mean: 4 mg/m³ (WHO Air Quality Guidelines)
+
+  O3:
+    peak_season_col: daily_max_o3_8h
+    rolling_col: daily_max_o3_8h
+    unit: μg/m³
+    peak_season_ref: 60
+    rolling_ref: 100
+    description: |
+      Ozone (O₃) at ground level forms when nitrogen oxides (NOₓ) react with 
+      volatile organic compounds (VOCs) in the presence of sunlight. It is 
+      measured in ppb or µg/m³ using UV photometric methods. Acute exposure can 
+      irritate the eyes, nose, and throat and aggravate lung diseases such as 
+      asthma. Repeated high exposures may lead to permanent lung damage and 
+      decreased lung function. Ozone levels typically peak during warmer months 
+      due to intense sunlight and higher temperatures, creating a seasonal 
+      health risk.
+      
+      Reference values:
+      - Peak season 8-hour mean: 60 μg/m³ (WHO Air Quality Guidelines)
+      - 8-hour rolling mean: 100 μg/m³ (WHO Air Quality Guidelines) 

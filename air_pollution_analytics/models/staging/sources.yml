@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: air_pollution
+    database: august-cirrus-399913  # Replace with your actual GCP project ID
+    schema: air_pollution
+    tables:
+      - name: air_pollution
+        description: "Raw air pollution measurements from OpenWeatherMap API"
+        columns:
+          - name: city
+            description: "City name"
+          - name: timestamp
+            description: "Timestamp of measurement"
+          - name: pm2_5
+            description: "PM2.5 concentration in μg/m³"
+          - name: pm10
+            description: "PM10 concentration in μg/m³"
+          - name: no2
+            description: "NO2 concentration in μg/m³"
+          - name: so2
+            description: "SO2 concentration in μg/m³"
+          - name: co
+            description: "CO concentration in mg/m³"
+          - name: o3
+            description: "O3 concentration in μg/m³" 

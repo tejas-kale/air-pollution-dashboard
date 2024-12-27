@@ -1,0 +1,211 @@
+Metadata-Version: 2.1
+Name: air-pollution-dashboard
+Version: 0.1.0
+Summary: A dashboard for visualizing air pollution data from multiple cities
+Author-email: Your Name <your.email@example.com>
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: geopy>=2.4.1
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: pyyaml>=6.0.1
+Requires-Dist: google-cloud-bigquery>=3.11.0
+Requires-Dist: pandas-gbq>=0.19.2
+Requires-Dist: dbt-bigquery>=1.5.0
+Requires-Dist: streamlit>=1.24.0
+Requires-Dist: plotly>=5.15.0
+Provides-Extra: dev
+Requires-Dist: black; extra == "dev"
+Requires-Dist: isort; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+
+# Air Pollution Dashboard
+
+A comprehensive system for collecting, processing, and visualizing air pollution data from multiple cities using OpenWeatherMap API, Google BigQuery, and Streamlit.
+
+## Overview
+
+This project provides an end-to-end solution for:
+1. Collecting historical air pollution data from OpenWeatherMap API
+2. Storing and transforming data using Google BigQuery and dbt
+3. Visualizing pollution trends through an interactive Streamlit dashboard
+
+## Project Structure 
+
+air-pollution-dashboard/
+├── config/
+│ └── cities.yml # City configuration
+├── src/
+│ ├── raw_data_collection/
+│ │ ├── main.py # Data collection script
+│ │ └── air_pollution_collector.py
+│ └── web_app/
+│ └── app.py # Streamlit dashboard
+├── air_pollution_analytics/
+│ ├── models/
+│ │ └── staging/ # dbt models
+│ ├── dbt_project.yml
+│ └── profiles.yml
+├── requirements.txt
+└── .env # Environment variables
+
+
+## Prerequisites
+
+1. Python 3.10 or higher
+2. Google Cloud Platform account with BigQuery enabled
+3. OpenWeatherMap API key
+4. dbt installed and configured
+
+## Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/air-pollution-dashboard.git
+cd air-pollution-dashboard
+```
+
+2. Create and activate virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate # On Windows: .venv\Scripts\activate
+```
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Set up environment variables:
+
+```bash
+cp .env.example .env
+# Edit .env with your actual values
+```
+
+5. Configure Google Cloud credentials:
+- Download your service account key file
+
+6. Create BigQuery dataset and tables:
+
+```bash
+python src/raw_data_collection/bq_dataset_creation.py
+```
+
+## Data Collection
+
+The system collects air pollution data for configured cities:
+
+1. Edit city list in `config/cities.yml`
+2. Run collection script:
+
+```bash
+python src/raw_data_collection/main.py
+```
+
+
+Data points collected:
+- PM2.5 and PM10 concentrations
+- Other pollutants (NO2, SO2, O3, etc.)
+- Timestamps and location information
+
+## Data Transformation
+
+dbt models transform raw data into analytical views:
+
+1. Configure dbt:
+
+```bash
+cd air_pollution_analytics
+dbt deps
+```
+
+2. Run transformations:
+
+```bash
+dbt run
+```
+
+Available models:
+- `stg_rolling_24h_mean`: 24-hour rolling averages
+- `stg_annual_mean`: Annual averages by city
+
+## Dashboard
+
+The Streamlit dashboard provides interactive visualizations:
+
+1. Launch the dashboard:
+
+```bash
+cd src/web_app
+streamlit run app.py
+```
+
+
+Features:
+- Annual mean comparisons across cities
+- 24-hour rolling mean trends
+- Pollutant selection
+- Date range filtering
+- Data quality metrics
+
+## Configuration
+
+### Cities
+
+Edit `config/cities.yml` to modify the list of monitored cities:
+
+```yaml
+cities:
+name: "London"
+country: "United Kingdom"
+name: "Berlin"
+country: "Germany"
+```
+
+
+### Environment Variables
+
+Required variables in `.env`:
+
+```bash
+OPENWEATHERMAP_API_KEY=your_api_key
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your/keyfile.json
+```
+
+## Data Quality
+
+The system implements several data quality measures:
+- Automatic gap detection in time series
+- Data completeness metrics
+- Validation of API responses
+- Error handling and logging
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- OpenWeatherMap API for providing air pollution data
+- Google Cloud Platform for data storage and processing
+- Streamlit for the visualization framework
+
+## Contact
+
+Your Name - your.email@example.com
+Project Link: https://github.com/yourusername/air-pollution-dashboard

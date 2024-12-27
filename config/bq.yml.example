@@ -1,0 +1,57 @@
+# BigQuery Configuration
+project:
+  id: <your-gcp-project-id>  # Replace with your GCP project ID
+  location: "US"
+
+dataset:
+  id: "air_pollution"
+  description: "Air pollution measurements from OpenWeatherMap API"
+
+table:
+  id: "air_pollution"
+  schema:
+    - name: "city"
+      type: "STRING"
+      mode: "REQUIRED"
+      description: "City name"
+    
+    - name: "timestamp"
+      type: "TIMESTAMP"
+      mode: "REQUIRED"
+      description: "Timestamp of measurement"
+    
+    - name: "aqi"
+      type: "INTEGER"
+      description: "Air Quality Index"
+    
+    - name: "co"
+      type: "FLOAT64"
+      description: "Carbon monoxide concentration"
+    
+    - name: "no"
+      type: "FLOAT64"
+      description: "Nitrogen monoxide concentration"
+    
+    - name: "no2"
+      type: "FLOAT64"
+      description: "Nitrogen dioxide concentration"
+    
+    - name: "o3"
+      type: "FLOAT64"
+      description: "Ozone concentration"
+    
+    - name: "so2"
+      type: "FLOAT64"
+      description: "Sulfur dioxide concentration"
+    
+    - name: "pm2_5"
+      type: "FLOAT64"
+      description: "PM2.5 concentration in μg/m³"
+    
+    - name: "pm10"
+      type: "FLOAT64"
+      description: "PM10 concentration in μg/m³"
+    
+    - name: "nh3"
+      type: "FLOAT64"
+      description: "Ammonia concentration" 

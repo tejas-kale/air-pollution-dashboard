@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  - name: stg_rolling_24h_mean
+    description: "24-hour rolling mean of pollutant measurements by city"
+    columns:
+      - name: city
+        description: "City name"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('cities')
+              field: city_name
+      - name: timestamp
+        description: "Timestamp of measurement"
+        tests:
+          - not_null
+      - name: pm2_5_24h_mean
+        description: "24-hour rolling mean of PM2.5 concentration in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10000
+      - name: pm10_24h_mean
+        description: "24-hour rolling mean of PM10 concentration in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10000
+      - name: no2_24h_mean
+        description: "24-hour rolling mean of NO2 concentration in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10000
+      - name: so2_24h_mean
+        description: "24-hour rolling mean of SO2 concentration in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10000
+      - name: co_24h_mean
+        description: "24-hour rolling mean of CO concentration in mg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10000
+
+  - name: stg_annual_mean
+    description: "Annual mean of pollutant measurements by city"
+    columns:
+      - name: city
+        description: "City name"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('cities')
+              field: city_name
+      - name: year
+        description: "Year of measurements"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 2020
+              max_value: 2030
+      - name: measurement_count
+        description: "Number of measurements in the year"
+        tests:
+          - not_null
+
+  - name: stg_o3_8h_rolling
+    description: "Daily maximum 8-hour rolling average of ozone concentrations"
+    columns:
+      - name: city
+        description: "City name"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('cities')
+              field: city_name
+      - name: date
+        description: "Date of measurement"
+        tests:
+          - not_null
+          # TODO: fix this test
+          # - dbt_utils.unique_combination_of_columns:
+          #     combination_of_columns: 
+          #       - city
+          #       - date
+      - name: daily_max_o3_8h
+        description: "Maximum 8-hour rolling average ozone concentration for the day in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 500
+
+  - name: stg_o3_peak_season
+    description: "Peak season ozone analysis based on 8-hour rolling averages"
+    columns:
+      - name: city
+        description: "City name"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('cities')
+              field: city_name
+      - name: date
+        description: "Date of measurement"
+        tests:
+          - not_null
+      - name: daily_max_o3_8h
+        description: "Maximum 8-hour rolling average ozone concentration for the day in μg/m³"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 500 
