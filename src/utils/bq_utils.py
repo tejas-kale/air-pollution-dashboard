@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import yaml
 from dotenv import load_dotenv
+from google.cloud import bigquery
 
 # Get project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent.resolve()
@@ -54,7 +55,7 @@ def load_environment():
     load_dotenv(env_path)
     
     # Check for required environment variables
-    required_vars = ['GOOGLE_APPLICATION_CREDENTIALS', 'OPENWEATHERMAP_API_KEY']
+    required_vars = ['GOOGLE_APPLICATION_CREDENTIALS', 'BIGQUERY_PROJECT_ID']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
     if missing_vars:
@@ -66,6 +67,18 @@ def load_environment():
         'google_creds': os.getenv('GOOGLE_APPLICATION_CREDENTIALS'),
         'openweather_key': os.getenv('OPENWEATHERMAP_API_KEY')
     }
+
+def get_bigquery_client():
+    """
+    Create and return a BigQuery client using environment configuration.
+    """
+    load_environment()
+    
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    if not project_id:
+        raise ValueError("BIGQUERY_PROJECT_ID environment variable is not set")
+        
+    return bigquery.Client(project=project_id)
 
 # Load configuration once at module level
 BQ_CONFIG = load_bq_config()

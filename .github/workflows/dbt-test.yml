@@ -54,7 +54,7 @@ jobs:
             ci:
               type: bigquery
               method: service-account
-              project: ${{ secrets.GCP_PROJECT_ID }}
+              project: ${{ secrets.BIGQUERY_PROJECT_ID }}
               dataset: air_pollution
               threads: 4
               timeout_seconds: 300

@@ -6,7 +6,6 @@ ENV/
 *.pyc
 __pycache__/
 august-cirrus-*.json
-**/bq.yml
 **/cities.yml
 
 # Project-specific files
