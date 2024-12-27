@@ -1,13 +1,15 @@
 """Data fetching module for the Streamlit app."""
 
+import os
+
 import streamlit as st
 from google.cloud import bigquery
-from src.utils.bq_utils import BQ_CONFIG
 
 @st.cache_data(ttl=3600)
 def get_annual_means():
     """Fetch annual mean data from BigQuery."""
-    client = bigquery.Client(project=BQ_CONFIG["project"]["id"])
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    client = bigquery.Client(project=project_id)
     query = """
     SELECT *
     FROM `air_pollution_staging.stg_annual_mean`
@@ -18,7 +20,8 @@ def get_annual_means():
 @st.cache_data(ttl=3600)
 def get_rolling_means(start_date, end_date):
     """Fetch rolling mean data for the specified date range."""
-    client = bigquery.Client(project=BQ_CONFIG["project"]["id"])
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    client = bigquery.Client(project=project_id)
     query = """
     SELECT *
     FROM `air_pollution_staging.stg_rolling_24h_mean`
@@ -36,7 +39,8 @@ def get_rolling_means(start_date, end_date):
 @st.cache_data(ttl=3600)
 def get_o3_peak_season():
     """Fetch ozone peak season data."""
-    client = bigquery.Client(project=BQ_CONFIG["project"]["id"])
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    client = bigquery.Client(project=project_id)
     query = """
     SELECT *
     FROM `air_pollution_staging.stg_o3_peak_season`
@@ -47,7 +51,8 @@ def get_o3_peak_season():
 @st.cache_data(ttl=3600)
 def get_o3_rolling():
     """Fetch ozone 8-hour rolling max data."""
-    client = bigquery.Client(project=BQ_CONFIG["project"]["id"])
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    client = bigquery.Client(project=project_id)
     query = """
     SELECT *
     FROM `air_pollution_staging.stg_o3_8h_rolling`
