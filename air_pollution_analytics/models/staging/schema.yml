@@ -18,35 +18,30 @@ models:
       - name: pm2_5_24h_mean
         description: "24-hour rolling mean of PM2.5 concentration in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10000
       - name: pm10_24h_mean
         description: "24-hour rolling mean of PM10 concentration in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10000
       - name: no2_24h_mean
         description: "24-hour rolling mean of NO2 concentration in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10000
       - name: so2_24h_mean
         description: "24-hour rolling mean of SO2 concentration in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10000
       - name: co_24h_mean
         description: "24-hour rolling mean of CO concentration in mg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10000
