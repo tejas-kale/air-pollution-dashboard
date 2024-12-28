@@ -56,4 +56,4 @@ def collect_all_cities(
 
 if __name__ == "__main__":
     # Run collection for all cities in append mode
-    collect_all_cities("append")
+    collect_all_cities("overwrite", datetime(2024, 12, 1), datetime(2024, 12, 3))
