@@ -32,6 +32,7 @@ class AirPollutionCollector:
         """Initialize the collector with configuration."""
         # Load environment variables
         env_vars = load_environment()
+        print(env_vars.keys())
         # Get API key from environment
         self.api_key = env_vars["openweather_key"]
         # Set the API endpoint for historical air pollution data
