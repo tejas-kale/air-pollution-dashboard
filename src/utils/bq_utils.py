@@ -70,11 +70,6 @@ def load_environment():
             f"Missing required environment variables: {', '.join(missing_vars)}"
         )
 
-    return {
-        "google_creds": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
-        "openweather_key": os.getenv("OPENWEATHERMAP_API_KEY"),
-    }
-
 
 def get_bigquery_client():
     """

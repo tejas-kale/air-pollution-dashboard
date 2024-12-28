@@ -6,6 +6,7 @@ and store it in BigQuery. It includes features for automatic date range handling
 data aggregation, and maintaining a record of last updates.
 """
 
+import os
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -31,10 +32,9 @@ class AirPollutionCollector:
     def __init__(self):
         """Initialize the collector with configuration."""
         # Load environment variables
-        env_vars = load_environment()
-        print(env_vars.keys())
+        load_environment()
         # Get API key from environment
-        self.api_key = env_vars["openweather_key"]
+        self.api_key = os.getenv("OPENWEATHERMAP_API_KEY")
         # Set the API endpoint for historical air pollution data
         self.base_url = "http://api.openweathermap.org/data/2.5/air_pollution/history"
 
