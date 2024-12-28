@@ -8,6 +8,7 @@ data aggregation, and maintaining a record of last updates.
 
 import os
 from datetime import datetime, timedelta
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -241,21 +242,33 @@ class AirPollutionCollector:
         except Exception as e:
             raise Exception(f"BigQuery error: {str(e)}")
 
-    def collect_data(self, city, write_mode="append"):
+    def collect_data(
+        self,
+        city: str,
+        write_mode: str = "append",
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ):
         """
-        Collect and store pollution data for a city for the last week.
+        Collect and store pollution data for a city.
 
         Args:
             city (str): Name of the city
             write_mode (str): Either 'append' or 'overwrite'
+            start_date (datetime, optional): Start date for data collection
+                If not provided, defaults to 7 days ago
+            end_date (datetime, optional): End date for data collection
+                If not provided, defaults to current date
 
         Raises:
             Exceptions are caught and logged within the method
         """
         try:
-            # Calculate date range for last week
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=7)
+            # Calculate date range - use provided dates or default to last week
+            if end_date is None:
+                end_date = datetime.now()
+            if start_date is None:
+                start_date = end_date - timedelta(days=7)
 
             # Get city coordinates
             lat, lon = self.get_coordinates(city)
@@ -275,6 +288,7 @@ class AirPollutionCollector:
             self.save_to_database(df, write_mode)
 
             print(f"Successfully collected and stored {len(df)} records for {city}")
+            print(f"Date range: {start_date} to {end_date}")
 
         except Exception as e:
             print(f"Error collecting data for {city}: {str(e)}")
