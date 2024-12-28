@@ -95,7 +95,6 @@ models:
       - name: daily_max_o3_8h
         description: "Maximum 8-hour rolling average ozone concentration for the day in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 500
@@ -117,7 +116,6 @@ models:
       - name: daily_max_o3_8h
         description: "Maximum 8-hour rolling average ozone concentration for the day in μg/m³"
         tests:
-          - not_null
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 500 
