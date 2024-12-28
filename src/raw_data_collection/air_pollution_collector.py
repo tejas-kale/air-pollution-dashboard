@@ -118,6 +118,8 @@ class AirPollutionCollector:
 
         # Extract each measurement from the API response
         for item in data["list"]:
+            print(item["dt"])
+            print(datetime.fromtimestamp(item["dt"]))
             record = {
                 "city": city,
                 "timestamp": datetime.fromtimestamp(item["dt"]),
@@ -232,13 +234,13 @@ class AirPollutionCollector:
                     print("All records already exist in database")
                     return
 
-            print(df)
             # Load filtered data to BigQuery
-            # load_job = client.load_table_from_dataframe(
-            #     df, table_ref, job_config=job_config
-            # )
-            # # Wait for job completion
-            # load_job.result()
+            load_job = client.load_table_from_dataframe(
+                df, table_ref, job_config=job_config
+            )
+
+            # Wait for job completion
+            load_job.result()
 
         except Exception as e:
             raise Exception(f"BigQuery error: {str(e)}")
@@ -286,7 +288,7 @@ class AirPollutionCollector:
                 return
 
             # Save data to BigQuery
-            self.save_to_database(df, write_mode)
+            # self.save_to_database(df, write_mode)
 
             print(f"Successfully collected and stored {len(df)} records for {city}")
             print(f"Date range: {start_date} to {end_date}")
