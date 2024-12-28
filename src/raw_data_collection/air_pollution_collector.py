@@ -118,7 +118,7 @@ class AirPollutionCollector:
 
     def parse_pollution_data(self, data: dict, city: str, timezone: pytz.timezone) -> pd.DataFrame:
         """
-        Parse API response data into a pandas DataFrame.
+        Parse API response data into a pandas DataFrame and ensure hourly completeness.
 
         Args:
             data (dict): Raw API response data
@@ -126,18 +126,16 @@ class AirPollutionCollector:
             timezone (pytz.timezone): Timezone for the city
 
         Returns:
-            pandas.DataFrame: Parsed pollution data
+            pandas.DataFrame: Parsed pollution data with complete hourly timestamps
         """
         records = []
 
+        # Parse API response
         for item in data["list"]:
-            # Convert timestamp to city's timezone
             local_dt = self.convert_timestamp(item["dt"], timezone)
-            print(local_dt)
-            
             record = {
                 "city": city,
-                "timestamp": local_dt,  # Now in city's local time
+                "timestamp": local_dt,
                 "aqi": item["main"]["aqi"],
                 "co": item["components"]["co"],
                 "no": item["components"]["no"],
@@ -150,7 +148,45 @@ class AirPollutionCollector:
             }
             records.append(record)
 
-        return pd.DataFrame(records)
+        # Convert to DataFrame
+        df = pd.DataFrame(records)
+        if df.empty:
+            return df
+
+        # Generate complete hourly sequence
+        min_time = df["timestamp"].min()
+        max_time = df["timestamp"].max()
+        complete_hours = pd.date_range(
+            start=min_time,
+            end=max_time,
+            freq="h",
+            tz=timezone
+        )
+
+        # Create template DataFrame with all hours
+        template = pd.DataFrame({
+            "timestamp": complete_hours,
+            "city": city
+        })
+
+        # Merge with actual data
+        df = pd.merge(
+            template,
+            df,
+            on=["city", "timestamp"],
+            how="left"
+        )
+
+        # Initialize numeric columns with explicit null values
+        numeric_columns = ["aqi", "co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
+        for col in numeric_columns:
+            if col not in df.columns:
+                df[col] = None
+            else:
+                df[col] = df[col].astype('float64')
+                df[col] = df[col].where(df[col].notna(), None)
+
+        return df
 
     def check_existing_records(self, client, table_ref, city, start_date, end_date):
         """
@@ -189,7 +225,7 @@ class AirPollutionCollector:
 
     def save_to_database(self, df, write_mode="append"):
         """
-        Save pollution data to BigQuery, skipping existing records.
+        Save pollution data to BigQuery, handling overwrites per city.
 
         Args:
             df (pandas.DataFrame): DataFrame containing pollution data
@@ -211,27 +247,61 @@ class AirPollutionCollector:
                     )
                 )
 
-            # Configure job for data loading
-            job_config = bigquery.LoadJobConfig(
-                schema=schema,
-                write_disposition=(
-                    bigquery.WriteDisposition.WRITE_TRUNCATE
-                    if write_mode == "overwrite"
-                    else bigquery.WriteDisposition.WRITE_APPEND
-                ),
-            )
-
             # Initialize BigQuery client
             client = bigquery.Client()
             dataset_ref = client.dataset(BQ_CONFIG["dataset"]["id"])
             table_ref = dataset_ref.table(BQ_CONFIG["table"]["id"])
+            table_id = f"{client.project}.{dataset_ref.dataset_id}.{table_ref.table_id}"
 
-            if write_mode == "append":
+            if write_mode == "overwrite":
+                # Get the city we're processing
+                city = df["city"].iloc[0]
+                
+                # Create temporary table for new data
+                temp_table_id = f"{table_id}_temp"
+                
+                # Load new data to temporary table
+                job_config = bigquery.LoadJobConfig(
+                    schema=schema,
+                    write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
+                )
+                load_job = client.load_table_from_dataframe(
+                    df, temp_table_id, job_config=job_config
+                )
+                load_job.result()
+
+                # Merge data, replacing only records for the current city
+                merge_query = f"""
+                    CREATE OR REPLACE TABLE `{table_id}` AS
+                    SELECT * FROM `{table_id}`
+                    WHERE city != @city
+                    UNION ALL
+                    SELECT * FROM `{temp_table_id}`
+                """
+                
+                job_config = bigquery.QueryJobConfig(
+                    query_parameters=[
+                        bigquery.ScalarQueryParameter("city", "STRING", city)
+                    ]
+                )
+                
+                merge_job = client.query(merge_query, job_config=job_config)
+                merge_job.result()
+
+                # Clean up temporary table
+                client.delete_table(temp_table_id)
+
+            else:  # append mode
+                job_config = bigquery.LoadJobConfig(
+                    schema=schema,
+                    write_disposition=bigquery.WriteDisposition.WRITE_APPEND
+                )
+
                 # Get existing records for the time period
                 existing_records = self.check_existing_records(
                     client,
-                    f"{client.project}.{dataset_ref.dataset_id}.{table_ref.table_id}",
-                    df["city"].iloc[0],  # Assuming all records are for same city
+                    table_id,
+                    df["city"].iloc[0],
                     df["timestamp"].min(),
                     df["timestamp"].max(),
                 )
@@ -248,13 +318,11 @@ class AirPollutionCollector:
                     print("All records already exist in database")
                     return
 
-            # Load filtered data to BigQuery
-            load_job = client.load_table_from_dataframe(
-                df, table_ref, job_config=job_config
-            )
-
-            # Wait for job completion
-            load_job.result()
+                # Load filtered data to BigQuery
+                load_job = client.load_table_from_dataframe(
+                    df, table_ref, job_config=job_config
+                )
+                load_job.result()
 
         except Exception as e:
             raise Exception(f"BigQuery error: {str(e)}")
@@ -301,7 +369,7 @@ class AirPollutionCollector:
                 return
 
             # Save data to BigQuery
-            # self.save_to_database(df, write_mode)
+            self.save_to_database(df, write_mode)
 
             print(f"Successfully collected and stored {len(df)} records for {city}")
             print(f"Date range: {start_date} to {end_date} ({timezone})")
