@@ -2,8 +2,7 @@
 Air Pollution Data Collection Module
 
 This module provides functionality to collect historical air pollution data from the OpenWeatherMap API
-and store it in BigQuery. It includes features for automatic date range handling,
-data aggregation, and maintaining a record of last updates.
+and store it in BigQuery.
 """
 
 import os
@@ -11,47 +10,27 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import pandas as pd
+import pytz
 import requests
 from geopy.geocoders import Nominatim
 from google.cloud import bigquery
+from timezonefinder import TimezoneFinder
 
 from src.utils.bq_utils import BQ_CONFIG, load_environment
 
 
 class AirPollutionCollector:
-    """
-    A class to collect and store historical air pollution data for cities.
-
-    This class handles the entire process of fetching air pollution data from OpenWeatherMap API,
-    including city geocoding, API requests, data parsing, and database storage.
-
-    Attributes:
-        api_key (str): OpenWeatherMap API key loaded from environment variables
-        base_url (str): Base URL for the OpenWeatherMap API
-    """
+    """A class to collect and store historical air pollution data for cities."""
 
     def __init__(self):
         """Initialize the collector with configuration."""
-        # Load environment variables
         load_environment()
-        # Get API key from environment
         self.api_key = os.getenv("OPENWEATHERMAP_API_KEY")
-        # Set the API endpoint for historical air pollution data
         self.base_url = "http://api.openweathermap.org/data/2.5/air_pollution/history"
+        self.tf = TimezoneFinder()  # Initialize TimezoneFinder
 
     def get_coordinates(self, city):
-        """
-        Get latitude and longitude coordinates for a city using geocoding.
-
-        Args:
-            city (str): Name of the city
-
-        Returns:
-            tuple: (latitude, longitude) coordinates
-
-        Raises:
-            ValueError: If city cannot be found
-        """
+        """Get latitude and longitude coordinates for a city using geocoding."""
         # Initialize geocoder with our app's user agent
         geolocator = Nominatim(user_agent="air_pollution_app")
 
@@ -60,10 +39,45 @@ class AirPollutionCollector:
             location = geolocator.geocode(city)
             if location:
                 return location.latitude, location.longitude
-            # Raise error if city not found
             raise ValueError(f"Could not find coordinates for {city}")
         except Exception as e:
             raise ValueError(f"Error getting coordinates: {str(e)}")
+
+    def get_timezone(self, lat: float, lon: float) -> pytz.timezone:
+        """
+        Get timezone for given coordinates.
+
+        Args:
+            lat (float): Latitude
+            lon (float): Longitude
+
+        Returns:
+            pytz.timezone: Timezone object for the location
+        """
+        # Get timezone string for coordinates
+        timezone_str = self.tf.timezone_at(lat=lat, lng=lon)
+        if not timezone_str:
+            # Default to UTC if timezone not found
+            print(f"Warning: Could not find timezone for coordinates ({lat}, {lon}). Using UTC.")
+            return pytz.UTC
+        
+        return pytz.timezone(timezone_str)
+
+    def convert_timestamp(self, timestamp: int, timezone: pytz.timezone) -> datetime:
+        """
+        Convert Unix timestamp to datetime in specified timezone.
+
+        Args:
+            timestamp (int): Unix timestamp in UTC
+            timezone (pytz.timezone): Target timezone
+
+        Returns:
+            datetime: Localized datetime object
+        """
+        # Convert Unix timestamp to UTC datetime
+        utc_dt = datetime.fromtimestamp(timestamp, pytz.UTC)
+        # Convert to target timezone
+        return utc_dt.astimezone(timezone)
 
     def get_pollution_data(self, lat, lon, start_date, end_date):
         """
@@ -102,27 +116,28 @@ class AirPollutionCollector:
         except requests.exceptions.RequestException as e:
             raise Exception(f"Error fetching pollution data: {str(e)}")
 
-    def parse_pollution_data(self, data, city):
+    def parse_pollution_data(self, data: dict, city: str, timezone: pytz.timezone) -> pd.DataFrame:
         """
         Parse API response data into a pandas DataFrame.
 
         Args:
             data (dict): Raw API response data
             city (str): City name to include in the records
+            timezone (pytz.timezone): Timezone for the city
 
         Returns:
             pandas.DataFrame: Parsed pollution data
         """
-        # Initialize list to store parsed records
         records = []
 
-        # Extract each measurement from the API response
         for item in data["list"]:
-            print(item["dt"])
-            print(datetime.fromtimestamp(item["dt"]))
+            # Convert timestamp to city's timezone
+            local_dt = self.convert_timestamp(item["dt"], timezone)
+            print(local_dt)
+            
             record = {
                 "city": city,
-                "timestamp": datetime.fromtimestamp(item["dt"]),
+                "timestamp": local_dt,  # Now in city's local time
                 "aqi": item["main"]["aqi"],
                 "co": item["components"]["co"],
                 "no": item["components"]["no"],
@@ -135,7 +150,6 @@ class AirPollutionCollector:
             }
             records.append(record)
 
-        # Convert records to DataFrame
         return pd.DataFrame(records)
 
     def check_existing_records(self, client, table_ref, city, start_date, end_date):
@@ -259,30 +273,29 @@ class AirPollutionCollector:
             city (str): Name of the city
             write_mode (str): Either 'append' or 'overwrite'
             start_date (datetime, optional): Start date for data collection
-                If not provided, defaults to 7 days ago
             end_date (datetime, optional): End date for data collection
-                If not provided, defaults to current date
-
-        Raises:
-            Exceptions are caught and logged within the method
         """
         try:
-            # Calculate date range - use provided dates or default to last week
+            # Calculate date range
             if end_date is None:
                 end_date = datetime.now()
             if start_date is None:
                 start_date = end_date - timedelta(days=7)
 
-            # Get city coordinates
+            # Get city coordinates and timezone
             lat, lon = self.get_coordinates(city)
+            timezone = self.get_timezone(lat, lon)
+
+            # Convert dates to UTC for API request
+            start_utc = start_date.astimezone(pytz.UTC)
+            end_utc = end_date.astimezone(pytz.UTC)
 
             # Fetch pollution data from API
-            pollution_data = self.get_pollution_data(lat, lon, start_date, end_date)
+            pollution_data = self.get_pollution_data(lat, lon, start_utc, end_utc)
 
-            # Parse API response into DataFrame
-            df = self.parse_pollution_data(pollution_data, city)
+            # Parse API response into DataFrame with city's timezone
+            df = self.parse_pollution_data(pollution_data, city, timezone)
 
-            # Check if we got any data
             if df.empty:
                 print(f"No data collected for {city}")
                 return
@@ -291,7 +304,7 @@ class AirPollutionCollector:
             # self.save_to_database(df, write_mode)
 
             print(f"Successfully collected and stored {len(df)} records for {city}")
-            print(f"Date range: {start_date} to {end_date}")
+            print(f"Date range: {start_date} to {end_date} ({timezone})")
 
         except Exception as e:
             print(f"Error collecting data for {city}: {str(e)}")
