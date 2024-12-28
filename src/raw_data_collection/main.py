@@ -24,15 +24,16 @@ def collect_all_cities(write_mode="append"):
     try:
         # Load city list from configuration file
         with open("config/cities.yml", "r", encoding="utf-8") as f:
-            cities = yaml.safe_load(f)["cities"]
+            cities_config = yaml.safe_load(f)["cities"]
 
         print(f"Starting data collection at {datetime.now()}")
-        print(f"Found {len(cities)} cities in configuration")
+        print(f"Found {len(cities_config)} cities in configuration")
 
         # Collect data for each city
-        for i, city in enumerate(cities, 1):
-            print(f"\nProcessing city {i}/{len(cities)}: {city}")
-            collector.collect_data(city, write_mode)
+        for i, city_data in enumerate(cities_config, 1):
+            city_name = city_data["name"]
+            print(f"\nProcessing city {i}/{len(cities_config)}: {city_name}")
+            collector.collect_data(city_name, write_mode)
 
         print(f"\nCompleted data collection at {datetime.now()}")
 
