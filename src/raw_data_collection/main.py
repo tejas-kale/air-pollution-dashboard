@@ -1,48 +1,48 @@
 """
-Air Pollution Data Collection Script
+Main script for air pollution data collection.
 
-This script collects historical air pollution data for specified cities using the OpenWeatherMap API
-and stores it in BigQuery. It handles multiple cities sequentially with rate limiting
-to avoid API throttling.
+This script orchestrates the collection of air pollution data for all configured cities.
 """
 
-from pathlib import Path
-import time
 import yaml
+from datetime import datetime
 
 from air_pollution_collector import AirPollutionCollector
 
-# Get project root directory
-PROJECT_ROOT = Path(__file__).parent.parent.parent.resolve()
 
-def load_cities():
+def collect_all_cities(write_mode="append"):
     """
-    Load city list from configuration file.
+    Collect data for all configured cities.
     
-    Returns:
-        list: List of city names in specified order
+    Args:
+        write_mode (str): Either 'append' or 'overwrite'
     """
-    config_path = PROJECT_ROOT / "config" / "cities.yml"
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-    return [city["name"] for city in config["cities"]]
-
-def main():
-    """Main execution function that orchestrates the data collection process."""
-    # Load cities from config
-    cities = load_cities()
+    # Initialize collector
+    collector = AirPollutionCollector()
     
-    # Initialize the collector
-    project_id = "august-cirrus-399913"
-    collector = AirPollutionCollector(project_id)
-    
-    # Collect data for each city
-    for city in cities:
-        print(f"\nProcessing {city}...")
-        collector.collect_data(city)  # Uses automatic date range
-        time.sleep(2)  # Add delay to avoid hitting API rate limits
+    try:
+        # Load city list from configuration file
+        with open("config/cities.yml", "r", encoding="utf-8") as f:
+            cities = yaml.safe_load(f)["cities"]
         
-    print("\nData collection completed for all cities!")
+        print(f"Starting data collection at {datetime.now()}")
+        print(f"Found {len(cities)} cities in configuration")
+        
+        # Collect data for each city
+        for i, city in enumerate(cities, 1):
+            print(f"\nProcessing city {i}/{len(cities)}: {city}")
+            collector.collect_data(city, write_mode)
+            
+        print(f"\nCompleted data collection at {datetime.now()}")
+        
+    except FileNotFoundError:
+        print("Error: cities.yml configuration file not found")
+    except yaml.YAMLError:
+        print("Error: Invalid YAML format in cities.yml")
+    except Exception as e:
+        print(f"Error during data collection: {str(e)}")
+
 
 if __name__ == "__main__":
-    main() 
+    # Run collection for all cities in append mode
+    collect_all_cities("append") 
