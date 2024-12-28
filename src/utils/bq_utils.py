@@ -62,7 +62,7 @@ def load_environment():
     load_dotenv(env_path)
 
     # Check for required environment variables
-    required_vars = ["GOOGLE_APPLICATION_CREDENTIALS", "BIGQUERY_PROJECT_ID"]
+    required_vars = ["GOOGLE_APPLICATION_CREDENTIALS", "BIGQUERY_PROJECT_ID", "OPENWEATHERMAP_API_KEY"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:
