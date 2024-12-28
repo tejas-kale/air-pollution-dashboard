@@ -7,7 +7,7 @@ This script orchestrates the collection of air pollution data for all configured
 import yaml
 from datetime import datetime
 
-from air_pollution_collector import AirPollutionCollector
+from .air_pollution_collector import AirPollutionCollector
 
 
 def collect_all_cities(write_mode="append"):
