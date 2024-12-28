@@ -1,0 +1,89 @@
+name: Daily ETL Pipeline
+
+on:
+  schedule:
+    # Run at 00:00 UTC every day
+    - cron: "0 0 * * *"
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  collect-and-transform:
+    runs-on: ubuntu-latest
+    
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-credentials.json
+      BIGQUERY_PROJECT_ID: ${{ secrets.BIGQUERY_PROJECT_ID }}
+      OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
+      DBT_PROFILES_DIR: ./air_pollution_analytics
+      DBT_PROJECT_DIR: ./air_pollution_analytics
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 1  # Shallow clone for faster checkout
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        cache: "pip"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        dbt deps --project-dir $DBT_PROJECT_DIR
+
+    - name: Set up GCP credentials
+      run: |
+        echo '${{ secrets.GOOGLE_CREDENTIALS }}' > gcp-credentials.json
+
+    - name: Create dbt profiles.yml
+      run: |
+        mkdir -p $DBT_PROFILES_DIR
+        cat << EOF > $DBT_PROFILES_DIR/profiles.yml
+        air_pollution_analytics:
+          target: prod
+          outputs:
+            prod:
+              type: bigquery
+              method: service-account
+              project: ${{ secrets.BIGQUERY_PROJECT_ID }}
+              dataset: air_pollution
+              threads: 4
+              timeout_seconds: 300
+              location: US
+              priority: interactive
+              keyfile: ${{ github.workspace }}/gcp-credentials.json
+        EOF
+
+    - name: Run data collection
+      run: |
+        echo "Starting data collection at $(date)"
+        python -m src.raw_data_collection.main
+        echo "Completed data collection at $(date)"
+
+    - name: Run dbt models
+      run: |
+        echo "Starting dbt run at $(date)"
+        dbt run --project-dir $DBT_PROJECT_DIR
+        echo "Completed dbt run at $(date)"
+
+    - name: Run dbt tests
+      if: success()
+      run: |
+        echo "Starting dbt tests at $(date)"
+        dbt test --project-dir $DBT_PROJECT_DIR
+        echo "Completed dbt tests at $(date)"
+
+    - name: Upload logs if failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: execution-logs
+        path: |
+          *.log
+          ${{ github.workspace }}/air_pollution_analytics/target/
+          ${{ github.workspace }}/air_pollution_analytics/logs/ 
