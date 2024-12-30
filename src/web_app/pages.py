@@ -23,41 +23,27 @@ POLLUTANT_INFO = load_pollutant_config()
 
 
 def render_landing_page():
-    """Render the landing page content."""
+    """Render the landing page with introduction and navigation guide."""
     st.title("🌍 Air Pollution Dashboard")
 
     st.markdown("""
-    Welcome to the Air Pollution Dashboard! This application provides comprehensive 
-    visualizations of air quality data across multiple cities, focusing on key air pollutants 
-    and their comparison to WHO Air Quality Guidelines.
+    This dashboard provides real-time and historical air pollution data analysis across multiple cities. 
+    Data is collected hourly from OpenWeatherMap API and processed using WHO guidelines as reference.
     
-    ### Available Pollutants
-    - **Particulate Matter**
-        - PM2.5 (Fine particles ≤ 2.5 μm)
-        - PM10 (Coarse particles ≤ 10 μm)
-    - **Gaseous Pollutants**
-        - NO₂ (Nitrogen Dioxide)
-        - SO₂ (Sulfur Dioxide)
-        - CO (Carbon Monoxide)
-        - O₃ (Ozone)
+    ### Available Analyses
     
-    ### Key Features
-    - **Multiple Visualizations**
-        - Annual mean concentrations (PM2.5, PM10, NO₂)
-        - 24-hour rolling averages (all pollutants)
-        - WHO guideline reference lines
+    - **Overview**: Current air quality status and trends across all cities
+    - **PM2.5 & PM10**: Fine particulate matter analysis with 24-hour rolling averages
+    - **NO₂ & SO₂**: Nitrogen and sulfur dioxide levels with WHO guideline comparisons
+    - **CO**: Carbon monoxide concentrations and temporal patterns
+    - **O₃**: Ozone analysis including peak season variations
     
-    - **Interactive Elements**
-        - Date range selection
-        - City comparisons
-        - Expandable pollutant information
-    
-    - **Data Quality Metrics**
-        - Measurement completeness
-        - Data coverage periods
-        - Real-time updates
+    Select a tab above to explore specific pollutants and their analyses.
     """)
 
+    # Add horizontal line before data overview
+    st.markdown("---")
+    
     # Add data overview
     st.subheader("Current Data Coverage")
     cities = load_cities()

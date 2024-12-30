@@ -2,6 +2,65 @@
 
 A comprehensive dashboard for visualizing and analyzing air pollution data across multiple cities.
 
+## Features
+
+- Historical air pollution data collection from OpenWeatherMap API
+- BigQuery data storage
+- Data transformation using dbt
+- Interactive visualizations with Plotly and Streamlit
+- Multiple pollutant analysis:
+  - PM2.5 and PM10
+  - NO2 and SO2
+  - CO
+  - O3 (including peak season analysis)
+- WHO Air Quality Guidelines reference
+- Data quality metrics
+- Configurable cities and pollutant parameters
+- CI/CD pipeline with Github Actions
+
+## Installation
+
+1. Create and activate virtual environment:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Unix/macOS
+.venv\Scripts\activate     # Windows
+```
+
+2. Install the package:
+```bash
+pip install -e ".[dev]"
+```
+
+3. Set up environment variables:
+```bash
+OPENWEATHERMAP_API_KEY=your_api_key
+GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+BIGQUERY_PROJECT_ID=your_project_id
+```
+
+4. Configure cities in two locations:
+- `air_pollution_analytics/seeds/cities.csv`
+- `config/cities.yml`
+
+## Usage
+
+1. Collect data:
+```bash
+python src/raw_data_collection/main.py
+```
+
+2. Run dbt models:
+```bash
+cd air_pollution_analytics
+dbt run
+```
+
+3. Launch dashboard:
+```bash
+streamlit run src/web_app/app.py
+```
+
 ## Architecture Overview
 
 ### High-Level Architecture
@@ -169,85 +228,57 @@ graph TB
 
 ```
 air-pollution-dashboard/
+├── .github/
+│   └── workflows/
+│       ├── daily-etl.yml          # Daily data collection pipeline
+│       └── dbt-test.yml           # dbt testing pipeline
+│
+├── air_pollution_analytics/        # dbt project
+│   ├── models/
+│   │   └── staging/
+│   │       ├── stg_annual_mean.sql
+│   │       ├── stg_rolling_24h_mean.sql
+│   │       ├── stg_o3_8h_rolling.sql
+│   │       └── stg_o3_peak_season.sql
+│   ├── seeds/
+│   │   └── cities.csv             # Reference data for cities
+│   ├── dbt_project.yml
+│   └── profiles.yml
+│
 ├── config/
-│   ├── cities.yml         # City configurations
-│   └── pollutants.yml     # Pollutant configurations
+│   └── cities.yml                 # Cities configuration for data collection
+│
 ├── src/
 │   ├── raw_data_collection/
+│   │   ├── __init__.py
 │   │   ├── air_pollution_collector.py
-│   │   ├── bq_dataset_creation.py
 │   │   └── main.py
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   └─�� bq_utils.py
+│   │   └── bq_utils.py
 │   └── web_app/
-│       ├── app.py         # Main Streamlit application
-│       ├── data.py        # Data fetching functions
-│       ├── pages.py       # Page rendering functions
-│       ├── plots.py       # Visualization functions
-│       └── utils.py       # Utility functions
-├── air_pollution_analytics/
-│   └── models/
-│       └── staging/
-│           ├── stg_annual_mean.sql
-│           ├── stg_rolling_24h_mean.sql
-│           ├── stg_o3_8h_rolling.sql
-│           └── stg_o3_peak_season.sql
-├── pyproject.toml         # Project configuration
-└── README.md
+│       ├── __init__.py
+│       ├── app.py                 # Main Streamlit application
+│       ├── data.py               # Data fetching functions
+│       ├── plots.py              # Visualization functions
+│       └── utils.py              # Utility functions
+│
+├── .env.example                   # Example environment variables
+├── .gitignore
+├── LICENSE
+├── README.md
+├── pyproject.toml                 # Project metadata and dependencies
+└── requirements.txt               # Project dependencies
 ```
 
-## Features
-
-- Real-time air pollution data collection from OpenWeatherMap API
-- Data transformation using dbt
-- Interactive visualizations with Plotly
-- Multiple pollutant analysis:
-  - PM2.5 and PM10
-  - NO2 and SO2
-  - CO
-  - O3 (including peak season analysis)
-- WHO Air Quality Guidelines reference
-- Data quality metrics
-- Configurable cities and pollutant parameters
-
-## Installation
-
-1. Create and activate virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Unix/macOS
-.venv\Scripts\activate     # Windows
-```
-
-2. Install the package:
-```bash
-pip install -e ".[dev]"
-```
-
-3. Set up environment variables:
-```bash
-OPENWEATHERMAP_API_KEY=your_api_key
-GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
-```
-
-## Usage
-
-1. Collect data:
-```bash
-python src/raw_data_collection/main.py
-```
-
-2. Run dbt models:
-```bash
-cd air_pollution_analytics
-dbt run
-```
-
-3. Launch dashboard:
-```bash
-streamlit run src/web_app/app.py
-```
+Each directory serves a specific purpose:
+- `.github/workflows/`: CI/CD pipelines for automated data collection and testing
+- `air_pollution_analytics/`: dbt project for data transformation
+- `config/`: Configuration files for data collection
+- `src/`: Source code organized by functionality
+  - `raw_data_collection/`: Scripts for collecting data from OpenWeatherMap
+  - `utils/`: Shared utility functions
+  - `web_app/`: Streamlit dashboard application
 
 ## Data Flow
 
@@ -263,19 +294,6 @@ streamlit run src/web_app/app.py
    - Streamlit web app fetches processed data
    - Creates interactive charts using Plotly
    - Displays data quality metrics
-
-## Configuration
-
-- `cities.yml`: Define cities to monitor
-- `pollutants.yml`: Configure pollutant parameters and WHO guidelines
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## License
 
