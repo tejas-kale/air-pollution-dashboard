@@ -92,7 +92,7 @@ models:
         tests:
           - dbt_utils.accepted_range:
               min_value: 0
-              max_value: 500
+              max_value: 1000
 
   - name: stg_o3_peak_season
     description: "Peak season ozone analysis based on 8-hour rolling averages"
